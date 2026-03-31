@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="30">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:transparent; font-family: monospace; color:#c8dff0; padding:8px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.card { background:#0d1520; border:1px solid #1a2d45; border-radius:8px; padding:12px; }
+.card.blue { border-top:2px solid #00d4ff; }
+.card.red { border-top:2px solid #ff4444; }
+.card.green { border-top:2px solid #00ff88; }
+.card.orange { border-top:2px solid #ff9800; }
+.label { font-size:0.55rem; letter-spacing:2px; text-transform:uppercase; color:#4a6a8a; margin-bottom:4px; }
+.value { font-size:1.3rem; font-weight:bold; }
+.card.blue .value { color:#00d4ff; }
+.card.red .value { color:#ff4444; }
+.card.green .value { color:#00ff88; }
+.card.orange .value { color:#ff9800; }
+.sub { font-size:0.6rem; color:#4a6a8a; margin-top:2px; }
+.status { display:flex; align-items:center; gap:6px; margin-top:8px; padding:6px 10px; background:#0d1520; border:1px solid #1a2d45; border-radius:6px; font-size:0.62rem; }
+.dot { width:6px; height:6px; border-radius:50%; background:#00ff88; box-shadow:0 0 6px #00ff88; }
+.dimtext { color:#4a6a8a; }
+.dimtext span { color:#00ff88; }
+.err { color:#ff4444; text-align:center; padding:20px; font-size:0.7rem; }
+</style>
+</head>
+<body>
+<div id="app"><div class="err">Loading...</div></div>
+<script>
+fetch('/pihole')
+  .then(r => r.json())
+  .then(d => {
+    const q = d?.queries?.total ?? 0;
+    const b = d?.queries?.blocked ?? 0;
+    const p = d?.queries?.percent_blocked ?? 0;
+    const dom = d?.gravity?.domains_being_blocked ?? 0;
+    const c = d?.clients?.active ?? 0;
+    const t = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('app').innerHTML = `
+      <div class="grid">
+        <div class="card blue"><div class="label">Queries</div><div class="value">${q.toLocaleString()}</div><div class="sub">today</div></div>
+        <div class="card red"><div class="label">Blocked</div><div class="value">${b.toLocaleString()}</div><div class="sub">${p.toFixed(1)}%</div></div>
+        <div class="card orange"><div class="label">Blocklist</div><div class="value">${(dom/1000).toFixed(0)}k</div><div class="sub">domains</div></div>
+        <div class="card green"><div class="label">Clients</div><div class="value">${c}</div><div class="sub">active</div></div>
+      </div>
+      <div class="status"><div class="dot"></div><div class="dimtext">Pi-hole <span>active</span> · ${t}</div></div>
+    `;
+  })
+  .catch(() => {
+    document.getElementById('app').innerHTML = '<div class="err">Cannot reach Pi-hole</div>';
+  });
+</script>
+</body>
+</html>
+```
